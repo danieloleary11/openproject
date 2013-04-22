@@ -44,6 +44,7 @@ Spork.prefork do
   require 'rspec/rails'
 
   require 'rspec/autorun'
+  require 'rspec/example_disabler'
   require 'capybara/rails'
 
   # Requires supporting ruby files with custom matchers and macros, etc,
@@ -85,8 +86,17 @@ Spork.prefork do
     config.after(:suite) do
       [User, Project, Issue].each do |cls|
         raise "your specs leave a #{cls} in the DB\ndid you use before(:all) instead of before or forget to kill the instances in a after(:all)?" if cls.count > 0
+      end
     end
   end
+
+  # load disable_specs.rbs from plugins
+  Rails.application.config.plugins_to_test_paths.each do |dir|
+    disable_specs_file = File.join(dir, 'spec', 'disable_specs.rb')
+    if File.exists?(disable_specs_file)
+      puts 'Loading ' + disable_specs_file
+      require disable_specs_file
+    end
   end
 end
 
